@@ -73,10 +73,10 @@ describe('FSwapPool contract', function () {
         var toSwap = parameters.amount.toBigInt()
 
         if (parameters.isToken0) {
-            var b1After = liq / (b0 + toSwap)
+            var b1After = b1 - ((b1 - liq / (b0 + toSwap)) * 998n) / 1000n
             var b0After = b0 + toSwap
         } else {
-            var b0After = liq / (b1 + toSwap)
+            var b0After = b0 - ((b0 - liq / (b1 + toSwap)) * 998n) / 1000n
             var b1After = b1 + toSwap
         }
 
@@ -85,7 +85,7 @@ describe('FSwapPool contract', function () {
             parameters.isToken0,
             parameters.amount,
             {
-                value: parameters.amount,
+                value: parameters.isToken0 ? parameters.amount : 0,
             }
         )
 
@@ -120,10 +120,10 @@ describe('FSwapPool contract', function () {
         var toSwap = parameters.amount.toBigInt()
 
         if (parameters.isToken0) {
-            var b1After = liq / (b0 + toSwap)
+            var b1After = b1 - ((b1 - liq / (b0 + toSwap)) * 998n) / 1000n
             var b0After = b0 + toSwap
         } else {
-            var b0After = liq / (b1 + toSwap)
+            var b0After = b0 - ((b0 - liq / (b1 + toSwap)) * 998n) / 1000n
             var b1After = b1 + toSwap
         }
 

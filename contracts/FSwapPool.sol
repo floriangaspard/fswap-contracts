@@ -84,11 +84,11 @@ contract FSwapPool {
             : balance1();
 
         if (_isToken0) {
-            uint256 toPay = b1 - (liquidity / (b0 + _amount));
+            uint256 toPay = (b1 - liquidity / (b0 + _amount)) * 998 / 1000; 
             routeDeposit(_amount, token0);
             routeWithdraw(toPay, token1);
         } else {
-            uint256 toPay = b0 - (liquidity / (b1 + _amount));
+            uint256 toPay = (b0 - liquidity / (b1 + _amount)) * 998 / 1000; 
             routeDeposit(_amount, token1);
             routeWithdraw(toPay, token0);
         }
