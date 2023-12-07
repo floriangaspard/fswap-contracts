@@ -8,6 +8,7 @@ import type {
   BytesLike,
   CallOverrides,
   ContractTransaction,
+  Overrides,
   PayableOverrides,
   PopulatedTransaction,
   Signer,
@@ -33,6 +34,8 @@ export interface FSwapPoolInterface extends utils.Interface {
     "swap(bool,uint256)": FunctionFragment;
     "token0()": FunctionFragment;
     "token1()": FunctionFragment;
+    "tokens()": FunctionFragment;
+    "withdraw()": FunctionFragment;
   };
 
   getFunction(
@@ -45,6 +48,8 @@ export interface FSwapPoolInterface extends utils.Interface {
       | "swap"
       | "token0"
       | "token1"
+      | "tokens"
+      | "withdraw"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "balance0", values?: undefined): string;
@@ -64,6 +69,8 @@ export interface FSwapPoolInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "token0", values?: undefined): string;
   encodeFunctionData(functionFragment: "token1", values?: undefined): string;
+  encodeFunctionData(functionFragment: "tokens", values?: undefined): string;
+  encodeFunctionData(functionFragment: "withdraw", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "balance0", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balance1", data: BytesLike): Result;
@@ -73,6 +80,8 @@ export interface FSwapPoolInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "swap", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token0", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token1", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {};
 }
@@ -130,6 +139,12 @@ export interface FSwapPool extends BaseContract {
     token0(overrides?: CallOverrides): Promise<[string]>;
 
     token1(overrides?: CallOverrides): Promise<[string]>;
+
+    tokens(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
   balance0(overrides?: CallOverrides): Promise<BigNumber>;
@@ -159,6 +174,12 @@ export interface FSwapPool extends BaseContract {
 
   token1(overrides?: CallOverrides): Promise<string>;
 
+  tokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+  withdraw(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     balance0(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -186,6 +207,10 @@ export interface FSwapPool extends BaseContract {
     token0(overrides?: CallOverrides): Promise<string>;
 
     token1(overrides?: CallOverrides): Promise<string>;
+
+    tokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {};
@@ -217,6 +242,12 @@ export interface FSwapPool extends BaseContract {
     token0(overrides?: CallOverrides): Promise<BigNumber>;
 
     token1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -246,5 +277,11 @@ export interface FSwapPool extends BaseContract {
     token0(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     token1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

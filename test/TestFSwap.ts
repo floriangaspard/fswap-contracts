@@ -151,17 +151,20 @@ describe('FSwapPool contract', function () {
         expect(await FSwapPool1.balance0()).to.equal(10)
         expect(await FSwapPool1.balance1()).to.equal(2)
         expect(await FSwapPool1.liquidity()).to.equal(20)
-        expect(await FSwapPool1.providers(addr1.address)).to.equal(20)
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(12)
+        expect(await FSwapPool1.tokens()).to.equal(12)
 
         await FSwapPool1.connect(addr1).deposit(30, 6, { value: 30 })
 
         expect(await FSwapPool1.liquidity()).to.equal(200)
-        expect(await FSwapPool1.providers(addr1.address)).to.equal(200)
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(48)
+        expect(await FSwapPool1.tokens()).to.equal(48)
 
         await FSwapPool1.connect(addr2).deposit(20, 4, { value: 20 })
         expect(await FSwapPool1.liquidity()).to.equal(280)
-        expect(await FSwapPool1.providers(addr1.address)).to.equal(200)
-        expect(await FSwapPool1.providers(addr2.address)).to.equal(80)
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(48)
+        expect(await FSwapPool1.providers(addr2.address)).to.equal(24)
+        expect(await FSwapPool1.tokens()).to.equal(72)
     })
 
     it('Deposit ETH and FTK to pool, bad liquidity ratio', async function () {
@@ -185,7 +188,10 @@ describe('FSwapPool contract', function () {
             parseEther('2').mul(parseEther('10'))
         )
         expect(await FSwapPool1.providers(addr1.address)).to.equal(
-            parseEther('2').mul(parseEther('10'))
+            parseEther('2').add(parseEther('10'))
+        )
+        expect(await FSwapPool1.tokens()).to.equal(
+            parseEther('2').add(parseEther('10'))
         )
 
         await expect(
@@ -196,7 +202,10 @@ describe('FSwapPool contract', function () {
             )
         ).to.be.revertedWith('Bad liquidity ratio')
         expect(await FSwapPool1.providers(addr1.address)).to.equal(
-            parseEther('2').mul(parseEther('10'))
+            parseEther('2').add(parseEther('10'))
+        )
+        expect(await FSwapPool1.tokens()).to.equal(
+            parseEther('2').add(parseEther('10'))
         )
 
         await expect(
@@ -207,7 +216,10 @@ describe('FSwapPool contract', function () {
             )
         ).to.be.revertedWith('Bad liquidity ratio')
         expect(await FSwapPool1.providers(addr1.address)).to.equal(
-            parseEther('2').mul(parseEther('10'))
+            parseEther('2').add(parseEther('10'))
+        )
+        expect(await FSwapPool1.tokens()).to.equal(
+            parseEther('2').add(parseEther('10'))
         )
     })
 
@@ -239,5 +251,91 @@ describe('FSwapPool contract', function () {
 
     it('Swap FTK for GCO', async function () {
         await SwapPool2({ amount: parseEther('0.1'), isToken0: false })
+    })
+
+    it('withdraw ETH and FTK from pool one provider', async function () {
+        const { FToken, FSwapPool1, addr1 } = await loadFixture(
+            deployTokenFixture
+        )
+
+        await FToken.connect(addr1).approve(
+            FSwapPool1.address,
+            parseEther('2000')
+        )
+
+        await FSwapPool1.connect(addr1).deposit(
+            parseEther('10'),
+            parseEther('2'),
+            { value: parseEther('10') }
+        )
+
+        expect(await FSwapPool1.balance0()).to.equal(parseEther('10'))
+        expect(await FSwapPool1.balance1()).to.equal(parseEther('2'))
+        expect(await FSwapPool1.liquidity()).to.equal(
+            parseEther('10').mul(parseEther('2'))
+        )
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(
+            parseEther('12')
+        )
+        expect(await FSwapPool1.tokens()).to.equal(parseEther('12'))
+
+        await FSwapPool1.connect(addr1).withdraw()
+
+        expect(await FSwapPool1.balance0()).to.equal(0)
+        expect(await FSwapPool1.balance1()).to.equal(0)
+        expect(await FSwapPool1.liquidity()).to.equal(0)
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(0)
+        expect(await FSwapPool1.tokens()).to.equal(0)
+    })
+
+    it('withdraw ETH and FTK from pool multiple provider', async function () {
+        const { FToken, FSwapPool1, addr1, addr2 } = await loadFixture(
+            deployTokenFixture
+        )
+
+        await FToken.connect(addr1).approve(
+            FSwapPool1.address,
+            parseEther('2000')
+        )
+        await FToken.connect(addr2).approve(
+            FSwapPool1.address,
+            parseEther('2000')
+        )
+
+        await FSwapPool1.connect(addr1).deposit(
+            parseEther('10'),
+            parseEther('2'),
+            { value: parseEther('10') }
+        )
+        await FSwapPool1.connect(addr2).deposit(
+            parseEther('20'),
+            parseEther('4'),
+            { value: parseEther('20') }
+        )
+
+        expect(await FSwapPool1.balance0()).to.equal(parseEther('30'))
+        expect(await FSwapPool1.balance1()).to.equal(parseEther('6'))
+        expect(await FSwapPool1.liquidity()).to.equal(
+            parseEther('10')
+                .mul(parseEther('2'))
+                .add(parseEther('20').mul(parseEther('4')))
+        )
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(
+            parseEther('12')
+        )
+        expect(await FSwapPool1.providers(addr2.address)).to.equal(
+            parseEther('24')
+        )
+        expect(await FSwapPool1.tokens()).to.equal(parseEther('36'))
+
+        await FSwapPool1.connect(addr1).withdraw()
+
+        expect(await FSwapPool1.balance0()).to.equal(parseEther('20').add(10)) // rounding errors
+        expect(await FSwapPool1.balance1()).to.equal(parseEther('4').add(2))
+        expect(await FSwapPool1.providers(addr1.address)).to.equal(0)
+        expect(await FSwapPool1.providers(addr2.address)).to.equal(
+            parseEther('24')
+        )
+        expect(await FSwapPool1.tokens()).to.equal(parseEther('24').add(12))
     })
 })

@@ -8,12 +8,14 @@ contract FSwapPool {
     address public immutable token1;
 
     uint256 public liquidity;
+    uint256 public tokens;
     mapping(address => uint256) public providers;
 
     constructor(address _token0, address _token1) {
         token0 = _token0;
         token1 = _token1;
         liquidity = 0;
+        tokens = 0;
     }
 
     function deposit(uint256 _amount0, uint256 _amount1) public payable {
@@ -22,8 +24,8 @@ contract FSwapPool {
 
         if (b0 != 0 && b1 != 0) {
             if (b0 > b1)
-                require(_amount0 / _amount1 == b0 / b1, 'Bad liquidity ratio');
-            else require(_amount1 / _amount0 == b1 / b0, 'Bad liquidity ratio');
+                require(_amount0*10**4 / _amount1 == b0*10**4 / b1, 'Bad liquidity ratio');
+            else require(_amount1*10**4 / _amount0 == b1*10**4 / b0, 'Bad liquidity ratio');
         }
 
         routeDeposit(_amount0, token0);
@@ -32,7 +34,8 @@ contract FSwapPool {
         uint256 addedLiquidity = _amount0 * _amount1;
         liquidity += addedLiquidity;
 
-        providers[msg.sender] += addedLiquidity;
+        tokens += _amount0 + _amount1;
+        providers[msg.sender] += _amount0 + _amount1;
     }
 
     function routeDeposit(uint256 _amount, address _token) internal {
@@ -92,5 +95,20 @@ contract FSwapPool {
             routeDeposit(_amount, token1);
             routeWithdraw(toPay, token0);
         }
+    }
+
+    function withdraw() public {
+        uint256 share = providers[msg.sender] * 10**18 / tokens;
+        uint256 withdraw0 = share * balance0() / 10**18;
+        uint256 withdraw1 = share * balance1() / 10**18;
+
+        routeWithdraw(withdraw0, token0);
+        routeWithdraw(withdraw1, token1);
+
+        uint256 removedLiquidity = withdraw0 * withdraw1;
+        liquidity -= removedLiquidity;
+
+        delete providers[msg.sender];
+        tokens -= withdraw0 + withdraw1;
     }
 }
