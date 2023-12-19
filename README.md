@@ -20,9 +20,13 @@ npx hardhat node
 npx hardhat run --network localhost scripts/deployToken.ts
 ```
 
-2. Deploy pool
+3. Deploy pool
    Tokens addresses must be defined in scripts/deployPool.ts
 
 ```
 npx hardhat run --network localhost scripts/deployPool.ts
 ```
+
+# Contact
+
+floriangaspard.fg@gmail.com
