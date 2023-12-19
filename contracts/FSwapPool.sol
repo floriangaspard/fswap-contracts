@@ -24,8 +24,15 @@ contract FSwapPool {
 
         if (b0 != 0 && b1 != 0) {
             if (b0 > b1)
-                require(_amount0*10**4 / _amount1 == b0*10**4 / b1, 'Bad liquidity ratio');
-            else require(_amount1*10**4 / _amount0 == b1*10**4 / b0, 'Bad liquidity ratio');
+                require(
+                    (_amount0 * 10 ** 4) / _amount1 == (b0 * 10 ** 4) / b1,
+                    'Bad liquidity ratio'
+                );
+            else
+                require(
+                    (_amount1 * 10 ** 4) / _amount0 == (b1 * 10 ** 4) / b0,
+                    'Bad liquidity ratio'
+                );
         }
 
         routeDeposit(_amount0, token0);
@@ -87,26 +94,30 @@ contract FSwapPool {
             : balance1();
 
         if (_isToken0) {
-            uint256 toPay = (b1 - liquidity / (b0 + _amount)) * 998 / 1000; 
+            uint256 toPay = ((b1 - liquidity / (b0 + _amount)) * 998) / 1000;
             routeDeposit(_amount, token0);
             routeWithdraw(toPay, token1);
         } else {
-            uint256 toPay = (b0 - liquidity / (b1 + _amount)) * 998 / 1000; 
+            uint256 toPay = ((b0 - liquidity / (b1 + _amount)) * 998) / 1000;
             routeDeposit(_amount, token1);
             routeWithdraw(toPay, token0);
         }
     }
 
     function withdraw() public {
-        uint256 share = providers[msg.sender] * 10**18 / tokens;
-        uint256 withdraw0 = share * balance0() / 10**18;
-        uint256 withdraw1 = share * balance1() / 10**18;
+        uint256 share = (providers[msg.sender] * 10 ** 18) / tokens;
+        uint256 withdraw0 = (share * balance0()) / 10 ** 18;
+        uint256 withdraw1 = (share * balance1()) / 10 ** 18;
 
         routeWithdraw(withdraw0, token0);
         routeWithdraw(withdraw1, token1);
 
         uint256 removedLiquidity = withdraw0 * withdraw1;
-        liquidity -= removedLiquidity;
+        if (removedLiquidity <= liquidity) {
+            liquidity -= removedLiquidity;
+        } else {
+            liquidity = 0;
+        }
 
         delete providers[msg.sender];
         tokens -= withdraw0 + withdraw1;
